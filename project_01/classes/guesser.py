@@ -50,9 +50,9 @@ APIs:
 # Main Tasks
 # ------------------------------------------------------------------------
 class Guesser():
-    self.trellis = None
-    self.led = None
-    self.score = 0
+    trellis = None
+    led = None
+    score = 0
     
     def __init__(self, trellis, led):
         self.trellis = trellis
@@ -66,6 +66,7 @@ class Guesser():
     
     def updateScore(self):
         self.score += 1
+        print("new guesser score is {0}".format(self.score))
     
     def getScore(self):
         return self.score

@@ -1,3 +1,5 @@
+
+
 """
 --------------------------------------------------------------------------
 Game class
@@ -32,27 +34,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
 APIs:
     - Game()
-        - setPatternSize()
+        - setPatternSize() DONE
             - Sets the number of presses for each pattern
             
-        - checkPress(location, pattern_list, press_counter)
+        - checkPress(location, pattern_list, press_counter) DONE
             - Checks if the guesser pressed the correct key
             - location is the key pressed
             - pattern_list represents the pattern set by the setter
             - press_counter is the current step in the pattern
         
-        - checkWinner(p1_score, p2_score)
+        - checkWinner(p1_score, p2_score) DONE
             - checks if any player/cpu has reached 10 points
             - p1_score is the score of player 1
             - p2_score is the score of player 2 or the cpu
         
-        - guessPattern(guesser, pattern_size, pattern_list)
+        - guessPattern(guesser, pattern_size, pattern_list) DONE
             - checks if the guesser guessed the whole pattern correctly
             - guesser is an instance of the Guesser class
             - pattern_list is the pattern set by the setter
             - pattern_size is the length of pattern_list
         
         - OnePlayer(Game)
+            - pins for led, buttons, trellis, lcd are passed as input
             - setup()
                 - sets up the hardware for the one player game mode
             
@@ -68,6 +71,7 @@ APIs:
         
         
         -TwoPlayer(Game)
+            - - pins for led, buttons, trellis, lcd are passed as input
             - setup()
                 - sets up the hardware for the two player game mode
             
@@ -86,3 +90,398 @@ APIs:
             - swap(guesser, setter)
                 - swaps the guesser and setter after each game
     --------------------------------------------------------------------------
+
+
+"""
+import sys
+import time
+import Adafruit_BBIO.PWM as PWM
+from random import randint
+from guesser import Guesser
+from setter import Setter
+
+#gets the path for the drivers
+sys.path.append("/var/lib/cloud9/ENGI301/project_01/drivers")
+import nav_button as Button
+import hd44780 as LCD
+import ht16k33 as LED
+
+FIRST_TRELLISLED = 0
+LAST_TRELLISLED = 15
+
+MIN_PATTERN_LENGTH = 4
+MAX_PATTERN_LENGTH = 10
+LCD_COL_SPACE = 2
+TIMEOUT_CODE = 9998
+TIMEOUT = 15.0
+
+#Constants for the LCD
+CURSOR_LEFT_LIMIT = 0
+CURSOR_RIGHT_LIMIT = 15
+COL_INDEX = 0
+ROW_INDEX = 1
+ROW_1 = 0
+ROW_2 = 1
+
+#pins for lcd
+rs = "P1_2"
+enable = "P1_4"
+d4 = "P2_2"
+d5 = "P2_4"
+d6 = "P2_6"
+d7 = "P2_8"
+cols = 16
+rows = 2
+
+#testing the code without the hardware
+software_debug = False
+
+#Testing individual drivers
+button_debug = False
+lcd_debug = True
+
+# ------------------------------------------------------------
+# Game superclass
+# ------------------------------------------------------------
+class Game():
+    
+    lcd = None
+    btn_left = None
+    btn_right = None
+    btn_select = None
+    led = None
+    #dictionary to map column numbers to the displayed numbers
+    pattern_length = {}
+    guesser = None
+    setter = None
+    pattern_size = None
+    
+    def __init__(self, lcd, btn_left, btn_right, btn_select,led):
+        self.lcd = lcd
+        self.btn_left = btn_left
+        self.btn_right = btn_right
+        self.btn_select = btn_select
+        self.led = led
+        
+    def setPatternSize(self):
+        """Allows player to set the size of each pattern sequence
+            Inputs: None
+            Output: The length of the pattern that was set
+        """
+        # test if the mappng of pattern lengths to column numbers is correct
+        if software_debug or button_debug:
+            print("Testing setPatternSize")
+            print("length of pattern?")
+            time.sleep(1)
+            cursor = 0
+        
+        else:
+            #displays message on first row of lcd
+            self.lcd.clear()
+            self.lcd.message("Pattern Length?")
+            #sets cursor to 1st col, 2nd row
+            self.lcd.setCursor(0,1)
+        
+        #disiplays the lengths of the patterns (4 to 10) on the lcd
+        #maps them to the column numbers in pattern_length
+        for p_length in range(MIN_PATTERN_LENGTH, MAX_PATTERN_LENGTH+1):
+            
+            if software_debug or button_debug:
+                #print(p_length)
+                self.pattern_length[cursor] = p_length
+                cursor += 2
+            
+            else:
+                self.lcd.message(str(p_length))
+                time.sleep(0.5)
+            
+                #maps column number to pattern length
+                self.pattern_length[self.lcd.cursor_position[COL_INDEX]] = p_length
+            
+                #leaves a space before the next number
+                self.lcd.setCursor(self.lcd.cursor_position[COL_INDEX] + LCD_COL_SPACE,1)
+                
+        
+        #gets the pattern size from the player
+        return(self._selectPatternLength())
+    
+    
+    def _selectPatternLength(self):
+        """allow user to scroll lcd or select pattern length
+            Inputs: None
+            Output: the length of the pattern selected by the user
+        """
+        print("testing _selectPatternLength")
+        
+        #resets the cursor position to the first column, second row
+        self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_2)
+        #if no button is pressed within 15 seconds, return the timeout code
+        self.idle_time = time.time()
+
+        while(time.time() - self.idle_time  < TIMEOUT):
+            
+            # test if the column number changes when cursor position is shifted left and right
+            if software_debug:
+                for cursor in range(12,-2,-LCD_COL_SPACE):
+                    print("cursor: {0}, value {1}".format(cursor, self.pattern_length[cursor]))
+                    time.sleep(1)
+                
+                for cursor in range(0,14,LCD_COL_SPACE):
+                    print("cursor: {0}, value {1}".format(cursor, self.pattern_length[cursor]))
+                    time.sleep(1)
+                
+                return(6)
+            
+            #button tests: test if the dictionary can be navigated using buttons
+            elif button_debug or lcd_debug:
+
+                if self.btn_left.is_pressed(): #checks if left button is pressed
+                    #moves cursor to the left unless it is already at the leftmost column 
+                    if self.lcd.cursor_position[COL_INDEX] >= CURSOR_LEFT_LIMIT:
+                        self.lcd.setCursor(self.lcd.cursor_position[COL_INDEX] - LCD_COL_SPACE, ROW_2)
+                    
+                        
+                    #prints the pattern size at the cursor position
+                    print(self.pattern_length[self.lcd.cursor_position[COL_INDEX]])
+                    #displays current pattern position on led
+                    self.led.blank()
+                    self.led.update(self.pattern_length[self.lcd.cursor_position[COL_INDEX]])
+                    
+                
+                    #resets the idle timer
+                    start_idle_time = time.time()
+                    time.sleep(0.5)
+                    
+            
+                elif self.btn_right.is_pressed():
+                    #moves cursor to the right unless it is already at the leftmost column
+                    if self.lcd.cursor_position[COL_INDEX] < 12:
+                        self.lcd.setCursor(self.lcd.cursor_position[COL_INDEX] + LCD_COL_SPACE, ROW_2)
+                    
+                    #prints the pattern size at the cursor position
+                    print(self.pattern_length[self.lcd.cursor_position[COL_INDEX]])
+                    
+                    #displays current pattern position on led
+                    self.led.blank()
+                    self.led.update(self.pattern_length[self.lcd.cursor_position[COL_INDEX]])
+            
+                    #resets the idle timer
+                    start_idle_time = time.time()
+                    time.sleep(0.5)
+                
+                elif self.btn_select.is_pressed():
+                    
+                    #prints the pattern size at the cursor position
+                    self.pattern_size = self.pattern_length[self.lcd.cursor_position[COL_INDEX]]
+                    print(self.pattern_size)
+                    self.lcd.clear()
+                    self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
+                    self.lcd.message("Pattern Length:")
+                    self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_2)
+                    self.lcd.message(str(self.pattern_size))
+                    time.sleep(0.5)
+                    
+                    #returns the pattern length that was selected
+                    return(self.pattern_size)
+        
+        #returns the timeout code if idle time exceeds timeout
+        if lcd_debug:
+            print(TIMEOUT_CODE)
+        return (TIMEOUT_CODE)
+        
+    def _checkPress(self, press_location, current_step, pattern_list):
+        """Checks if the guesser pressed the right button in the pattern
+            Output: True if the correct button was pressed, False otherwise
+        """
+        #turns the LED on for 0.5 seconds if the right button was pressed
+        if press_location == pattern_list[current_step]:
+            if software_debug or lcd_debug:
+                print("led {0} is on ".format(press_location))
+                time.sleep(1)
+                print("led {0} is off".format(press_location))
+            else:
+                self.guesser.trellis.setLED(press_location)
+                self.guesser.trellis.writeDisplay()
+            
+                time.sleep(0.5)
+                self.guesser.trellis.clearLED(press_location)
+                self.guesser.trellis.writeDisplay()
+            
+            return True
+        
+        #blinks the led thrice if the wrong button was pressed
+        else:
+            if software_debug:
+                print("led {0} is blinking".format(press_location))
+            else:
+                self.guesser.trellis.blinkLED(3, press_location)
+            return False
+    
+    def _checkWinner(self,p1_score, p2_score):
+        """Checks if player 1 or player 2/cpu has reached 10 points
+            Output: True if any player has reached 10 points, False otherwise
+        """
+        #prints out the winner on LCD if there is one
+        self.lcd.clear()
+        self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
+        if p1_score ==1: 
+            if software_debug or lcd_debug:
+                print("player 1 is the winner with a score of {0}".format(p1_score))
+                
+                self.lcd.message("Player 1 wins")
+            return True
+        
+        elif p2_score == 1:
+            if software_debug or lcd_debug:
+                print("player 2 is the winner with a score of {0}".format(p2_score))
+                self.lcd.message("Player 2 wins")
+            return True
+        
+        else:
+            if software_debug or lcd_debug:
+                print("No winner")
+                self.lcd.message("No winner")
+            return False
+            
+    
+    def _guessPattern(self, pattern_size, pattern_list):
+        """Checks if the guesser guessed the pattern correctly
+            Output: True if the Guesser guessed the pattern correctly, False otherwise
+        """
+        # displays the pattern to the guesser
+        if software_debug or lcd_debug:
+            print("\n")
+            print("testing showPattern")
+        self._showPattern(pattern_size, pattern_list)
+        
+        if software_debug:
+            print("enter pattern")
+        else:
+            self.lcd.clear()
+            self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
+            self.lcd.message("Enter pattern!")
+            time.sleep(0.5)
+        
+        #tests a correct pattern
+        if software_debug or lcd_debug:
+            guesser_pattern = pattern_list
+            print("simulating the guesser guessing the pattern")
+        
+        #records and checks each of the guesser's presses
+        for press_counter in range(pattern_size):
+            
+                # records the duration for which the guesser is 'idle'
+                start_idle_time = time.time()
+                
+                #uses each element in 'guesser_pattern' as the press location
+                if software_debug or lcd_debug:
+                    press_location = guesser_pattern[press_counter]
+                else:
+                    press_location = self.guesser.trellis.readPress()
+                    
+                if(press_location != None):
+                    #checks if the button pressed was correct
+                    if self._checkPress(press_location, press_counter, pattern_list):
+                        # resets the timeout clock
+                        if software_debug or lcd_debug:
+                            self.lcd.clear()
+                            self.lcd.message("press correct")
+                            print("press correct, idle timer reset")
+                        start_idle_time = time.time()
+                        
+                    else:
+                        if software_debug or lcd_debug:
+                            print("Incorrect press!")
+                            self.lcd.clear()
+                            self.lcd.message("wrong press")
+                        return False
+                
+                # guesser loses the point if no button is pressed for 15 seconds  
+                if time.time() - start_idle_time > TIMEOUT:
+                    if software_debug or lcd_debug:
+                        print("sorry time is up")
+                        self.lcd.clear()
+                        self.lcd.message("Sorry, time is up")
+                    return False
+        return True
+            
+    
+    def _showPattern(self, pattern_size, pattern_list):
+        """Shows each step in the pattern to the guesser for two seconds
+            Output: none
+        """
+        if software_debug:
+            print("\n")
+            print("Showing the pattern to the guesser")
+            
+       #tracks the number of steps of the pattern already shown
+        for flash_counter in range(pattern_size):
+            if software_debug or lcd_debug:
+                #print("led {0} in position {1} is on".format(flash_counter, pattern_list[flash_counter]))
+                time.sleep(0.5)
+                #print("led {0} in position {1} is off".format(flash_counter, pattern_list[flash_counter]))
+            else:
+                self.guesser.trellis.setLED(pattern_list[flash_counter])
+                self.guesser.trellis.writeDisplay()
+            
+                time.sleep(2)
+                self.guesser.trellis.clearLED(pattern_list[flash_counter])
+                self.guesser.trellis.writeDisplay()
+        return
+    
+    def cleanup(self):
+        """ clears LCD display and turns off the LEDs"""
+        if software_debug or lcd_debug:
+            print("cleanup done")
+        else:
+            self.lcd.clear()
+            self.guesser.led.blank()
+            self.setter.led.blank()
+        return
+
+    
+# -----------------------------------------------------------------------
+# Start of the twoPlayer subclass
+# -----------------------------------------------------------------------
+
+    
+# ------------------------------------------------------------------------
+# Main script
+# ------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+# -----------------------------------------------------
+# Testing for the game class
+# ----------------------------------------------------
+
+    #creates the buttons for the button test
+    left_btn = Button.Button("P2_18")
+    right_btn = Button.Button("P2_20")
+    select_btn = Button.Button("P2_22")
+    lcd = LCD.LCD(rs, enable, d4, d5, d6, d7, cols, rows)
+    led = LED.LED(1, 0x70)
+    test_game = Game(lcd,left_btn,right_btn, select_btn, led)
+    #TODO: test for setPatternSize and _selectPatternLength
+    #print("Testing setPatternSize and _selectPatternLength")
+    test_game.setPatternSize()
+    #p_list = ["a","b","c","d","e","f"]
+    #test_game._guessPattern(6,p_list)
+    #test_game._checkWinner(0,0)
+    
+    # test for _showPattern
+    #print("Testing _showPattern")
+    #p_length = test_game.setPatternSize()
+    #test_game._showPattern(p_length,p_list)
+    
+    #test for guessPattern, setPatternSize, _showPattern, and checkPress
+    #print("Testing guessPattern")
+    #test_game.guessPattern(p_length,p_list)
+    
+    #test for checkWinner
+    #print("Testing checkWinner")
+    #test_game.checkWinner(10,1) #player 1 wins
+    #test_game.checkWinner(1,10) #player 2 wins
+    #test_game.checkWinner(1,1) #false
+    
+
