@@ -193,6 +193,7 @@ if __name__ == "__main__":
     btn_right = Button.Button("P2_20")
     btn_select = Button.Button("P2_22")
     led = LED.LED(1, 0x70)
+
     
     lcd = LCD.LCD(rs, enable, d4, d5, d6, d7, cols, rows)
     game = patternGuesser(lcd,btn_left,btn_right,btn_select,led)

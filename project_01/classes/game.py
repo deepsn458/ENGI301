@@ -297,24 +297,25 @@ class Game():
         if press_location == pattern_list[current_step]:
             if software_debug or lcd_debug:
                 print("led {0} is on ".format(press_location))
-                time.sleep(1)
-                print("led {0} is off".format(press_location))
-            else:
-                self.guesser.trellis.setLED(press_location)
-                self.guesser.trellis.writeDisplay()
-            
+                self.guesser.trellis.led[press_location] = True
                 time.sleep(0.5)
-                self.guesser.trellis.clearLED(press_location)
-                self.guesser.trellis.writeDisplay()
+                print("led {0} is off".format(press_location))
+                self.guesser.trellis.led[press_location] = False
+            
             
             return True
         
-        #blinks the led thrice if the wrong button was pressed
+        #blinks the led for 2 seconds if the wrong button was pressed
         else:
             if software_debug:
                 print("led {0} is blinking".format(press_location))
             else:
-                self.guesser.trellis.blinkLED(3, press_location)
+                time_counter = time.time()
+                while(time.time() - time_counter < 2):
+                    self.guesser.trellis.led[press_location] = True
+                    time.sleep(0.2)
+                    self.guesser.trellis.led[press_location] = False
+                    time.sleep(0.2)
             return False
     
     def _checkWinner(self,p1_score, p2_score):
@@ -324,14 +325,14 @@ class Game():
         #prints out the winner on LCD if there is one
         self.lcd.clear()
         self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
-        if p1_score ==1: 
+        if p1_score ==5: 
             if software_debug or lcd_debug:
                 print("player 1 is the winner with a score of {0}".format(p1_score))
                 
                 self.lcd.message("Player 1 wins")
             return True
         
-        elif p2_score == 1:
+        elif p2_score == 5:
             if software_debug or lcd_debug:
                 print("player 2 is the winner with a score of {0}".format(p2_score))
                 self.lcd.message("Player 2 wins")
@@ -363,7 +364,7 @@ class Game():
             time.sleep(0.5)
         
         #tests a correct pattern
-        if software_debug or lcd_debug:
+        if software_debug:
             guesser_pattern = pattern_list
             print("simulating the guesser guessing the pattern")
         
@@ -372,12 +373,24 @@ class Game():
             
                 # records the duration for which the guesser is 'idle'
                 start_idle_time = time.time()
+
+                # gets the first button that was pressed and released, incase the user presses multiple buttons at once
+                #the list of pressed buttons is the 1st value returned by read_buttons
+                pressed_buttons = []
                 
-                #uses each element in 'guesser_pattern' as the press location
-                if software_debug or lcd_debug:
-                    press_location = guesser_pattern[press_counter]
-                else:
-                    press_location = self.guesser.trellis.readPress()
+                #waits for user press
+                while(pressed_buttons == []):
+                    time.sleep(0.1)
+                    print(pressed_buttons)
+                    pressed_buttons = self.guesser.trellis.read_buttons()[0]
+                    
+                press_location = pressed_buttons[0]
+                print(press_location)
+                    
+                #lights up the pressed button for 0.5 seconds
+                self.guesser.trellis.led[press_location] = True
+                time.sleep(1)
+                self.guesser.trellis.led[press_location] = False
                     
                 if(press_location != None):
                     #checks if the button pressed was correct
@@ -416,17 +429,17 @@ class Game():
             
        #tracks the number of steps of the pattern already shown
         for flash_counter in range(pattern_size):
-            if software_debug or lcd_debug:
-                #print("led {0} in position {1} is on".format(flash_counter, pattern_list[flash_counter]))
+            if software_debug:
+                print("led {0} in position {1} is on".format(flash_counter, pattern_list[flash_counter]))
                 time.sleep(0.5)
                 #print("led {0} in position {1} is off".format(flash_counter, pattern_list[flash_counter]))
-            else:
-                self.guesser.trellis.setLED(pattern_list[flash_counter])
-                self.guesser.trellis.writeDisplay()
+            elif lcd_debug:
+                self.guesser.trellis.led[pattern_list[flash_counter]] = True
+                print("led {0} in position {1} is on".format(flash_counter, pattern_list[flash_counter]))
             
                 time.sleep(2)
-                self.guesser.trellis.clearLED(pattern_list[flash_counter])
-                self.guesser.trellis.writeDisplay()
+                self.guesser.trellis.led[pattern_list[flash_counter]] = False
+                
         return
     
     def cleanup(self):

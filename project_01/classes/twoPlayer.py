@@ -211,20 +211,14 @@ class twoPlayer(game.Game):
         print("testing _chooseGuesser")
         time.sleep(0.5)
         if random.randint(1,2) == 1:
-            if not software_debug:
-                print("Setter is player 1")
-            else:
-                self.setter = setter.Setter(self.trellis1, self.led1)
-                self.guesser = guesser.Guesser(self.trellis2, self.led2)
-                print(self.guesser.trellis)
+            self.setter = setter.Setter(self.trellis1, self.led1)
+            self.guesser = guesser.Guesser(self.trellis2, self.led2)
+            print(self.guesser.trellis)
     
-        else:
-            if not software_debug:
-                print("Setter is player 2")
-            else:
-                self.setter = setter.Setter(self.trellis2, self.led2)
-                self.guesser = guesser.Guesser(self.trellis1, self.led1)
-                print(self.guesser.trellis)
+         
+            self.setter = setter.Setter(self.trellis2, self.led2)
+            self.guesser = guesser.Guesser(self.trellis1, self.led1)
+            print(self.guesser.trellis)
     
         
 

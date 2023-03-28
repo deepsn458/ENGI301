@@ -81,6 +81,12 @@ import time
 import game
 import random
 import guesser 
+import time
+import busio
+import board
+from adafruit_trellis import Trellis
+
+
 
 #gets the path for the drivers
 sys.path.append("/var/lib/cloud9/ENGI301/project_01/drivers")
@@ -91,7 +97,7 @@ import ht16k33 as LED
 
 class onePlayer(game.Game):
     trellis = None
-    pattern_size = 0
+    pattern_size = None
     cpu_score = 0
     #stores the randomely set pattern
     pattern_list = []
@@ -122,7 +128,7 @@ class onePlayer(game.Game):
         pattern_size = self.setPatternSize()
             
         # the main logic for the one player game mode
-        self.playOnePlayer(pattern_size)
+        self.playOnePlayer(self.setPatternSize())
             
         #calls the cleanup methpod
         self.cleanup()
@@ -137,7 +143,7 @@ class onePlayer(game.Game):
         self.led.clear()
         self.lcd.setCursor(CURSOR_LEFT_LIMIT,ROW_1)
         #Initialize the guesser
-        self.guesser = guesser.Guesser(1,self.led)
+        self.guesser = guesser.Guesser(self.trellis,self.led)
         # initialize the scores of the guesser and the cpu
         #if testing software, guesser class is not yet integrated
         
@@ -153,7 +159,7 @@ class onePlayer(game.Game):
             #otherwise 1 is added to cpu's score
             if self._guessPattern(pattern_size, self.pattern_list):
                 self.guesser.score += 1
-                #self.led.update(self.guesser.score)
+                self.led.update(self.guesser.score)
                 
                 if software_debug or lcd_debug:
                     self.lcd.message("guesser is right")
@@ -164,6 +170,7 @@ class onePlayer(game.Game):
                 if software_debug or lcd_debug:
                     self.lcd.message("guesser is wrong")
                     print("guesser got the pattern wrong")
+            time.sleep(3)
             # generate a random pattern for the next round in the game       
             self._generatePattern(pattern_size)
          
@@ -190,13 +197,16 @@ if __name__ == '__main__':
     select_btn = Button.Button("P2_22")
     lcd = LCD.LCD(rs, enable, d4, d5, d6, d7, cols, rows)
     led = LED.LED(1,0x70)
-    test_p1 = onePlayer(lcd,left_btn,right_btn,select_btn,led, 2)
+    
+    # Create the I2C interface
+    i2c = busio.I2C(board.SCL_2, board.SDA_2)
+    trellis = Trellis(i2c)
+    test_p1 = onePlayer(lcd,left_btn,right_btn,select_btn,led, trellis)
     #TODO: test for run
     #TODO: test for _generatePattern
-    print("testing generatePattern")
     #test_p1._generatePattern(test_p1.setPatternSize())
 
     #TODO: test for playOnePlayer
     print("testing playOnePlayer")
-    test_p1.playOnePlayer(test_p1.setPatternSize())
+    test_p1.run()
     print("Test done")
