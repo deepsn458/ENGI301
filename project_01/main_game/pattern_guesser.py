@@ -91,6 +91,8 @@ software_debug = False
 button_debug = True
 import sys
 import time
+
+
 import game
 import onePlayer
 import twoPlayer
@@ -99,9 +101,6 @@ import setter
 import busio
 import board
 
-
-#gets the path for the drivers
-sys.path.append("/var/lib/cloud9/ENGI301/project_01/drivers")
 import nav_button as Button
 import hd44780 as LCD
 import ht16k33 as LED
