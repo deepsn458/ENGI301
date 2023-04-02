@@ -348,7 +348,8 @@ if __name__ == '__main__':
     
     print("Test HT16K33 Display:")
     
-    display = LED(1, 0x70)
+    display = LED(1, 0x71)
+    display2 = LED(1,0x71)
 
     for i in range(0, 10):
         display.update(i)
