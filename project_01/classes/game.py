@@ -193,7 +193,6 @@ class Game():
             
             else:
                 self.lcd.message(str(p_length))
-                time.sleep(0.5)
             
                 #maps column number to pattern length
                 self.pattern_length[self.lcd.cursor_position[COL_INDEX]] = p_length
@@ -325,23 +324,32 @@ class Game():
         #prints out the winner on LCD if there is one
         self.lcd.clear()
         self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
-        if p1_score ==5: 
+        if p1_score ==2: 
             if software_debug or lcd_debug:
                 print("player 1 is the winner with a score of {0}".format(p1_score))
                 
                 self.lcd.message("Player 1 wins")
+                #turns on the LEDs on the trellis of player 1 for 2 seconds
+                if (self.setter != None):
+                    self.trellis1.led.fill(True)
+                    time.sleep(2)
+                    self.trellis1.led.fill(False)
             return True
         
-        elif p2_score == 5:
+        elif p2_score == 2:
             if software_debug or lcd_debug:
                 print("player 2 is the winner with a score of {0}".format(p2_score))
                 self.lcd.message("Player 2 wins")
+                #turns on the LEDs on the trellis of player 2 for 2 seconds
+                if (self.setter != None):
+                    self.trellis2.led.fill(True)
+                    time.sleep(2)
+                    self.trellis2.led.fill(False)
             return True
         
         else:
             if software_debug or lcd_debug:
                 print("No winner")
-                self.lcd.message("No winner")
             return False
             
     
@@ -361,8 +369,8 @@ class Game():
             self.lcd.clear()
             self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
             self.lcd.message("Enter pattern!")
+            self.guesser.trellis.read_buttons()[0]
             time.sleep(0.5)
-        
         #tests a correct pattern
         if software_debug:
             guesser_pattern = pattern_list
@@ -444,12 +452,12 @@ class Game():
     
     def cleanup(self):
         """ clears LCD display and turns off the LEDs"""
-        if software_debug or lcd_debug:
-            print("cleanup done")
-        else:
-            self.lcd.clear()
-            self.guesser.led.blank()
+        
+        self.lcd.clear()
+        self.guesser.led.blank()
+        if(self.setter != None):
             self.setter.led.blank()
+        
         return
 
     

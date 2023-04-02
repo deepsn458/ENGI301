@@ -66,7 +66,7 @@ class Guesser():
     
     def updateScore(self):
         self.score += 1
-        print("new guesser score is {0}".format(self.score))
+        self.led.update(self.score)
     
     def getScore(self):
         return self.score

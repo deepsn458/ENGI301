@@ -84,7 +84,6 @@ import guesser
 import time
 import busio
 import board
-from adafruit_trellis import Trellis
 
 
 
@@ -93,6 +92,7 @@ sys.path.append("/var/lib/cloud9/ENGI301/project_01/drivers")
 import nav_button as Button
 import hd44780 as LCD
 import ht16k33 as LED
+from adafruit_trellis import Trellis
 
 
 class onePlayer(game.Game):
@@ -123,13 +123,11 @@ class onePlayer(game.Game):
         
     def run(self):
         """ Runs the onePlayer game mode"""
-        #gets the pattern size
+      
         self.lcd.clear()
-        pattern_size = self.setPatternSize()
-            
         # the main logic for the one player game mode
         self.playOnePlayer(self.setPatternSize())
-            
+        time.sleep(2)
         #calls the cleanup methpod
         self.cleanup()
         return
@@ -150,6 +148,7 @@ class onePlayer(game.Game):
         self.guesser.score = 0
         self.cpu_score = 0
         
+        time.sleep(2)
         # generate a random pattern  
         self._generatePattern(pattern_size)
         
@@ -170,6 +169,18 @@ class onePlayer(game.Game):
                 if software_debug or lcd_debug:
                     self.lcd.message("guesser is wrong")
                     print("guesser got the pattern wrong")
+            
+            #displays the scores of the players
+            self.lcd.clear()
+            self.lcd.setCursor(CURSOR_LEFT_LIMIT,ROW_1)
+            self.lcd.message("P1:")
+            self.lcd.setCursor(CURSOR_LEFT_LIMIT+4, ROW_1)
+            self.lcd.message(str(self.guesser.score))
+            
+            self.lcd.setCursor(CURSOR_LEFT_LIMIT,ROW_2)
+            self.lcd.message("CPU:")
+            self.lcd.setCursor(CURSOR_LEFT_LIMIT+5, ROW_2)
+            self.lcd.message(str(self.cpu_score))
             time.sleep(3)
             # generate a random pattern for the next round in the game       
             self._generatePattern(pattern_size)

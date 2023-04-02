@@ -30,33 +30,59 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
+Software API:
+    
+    patternGuesser()
+     This class is used to run the pattern Guesser game. It will be used to determine the specific
+     game mode selected by the user and then initialize a one player or two player game accordingly
+     
+        _setup():
+            - clears the LCD display
+        
+        run():
+            - runs the main logic for the game
+        
+        getGamemode():
+            - Returns the game mode selected by the user (either one player or two player)
+        
+        _cleanup():
+            - Turns off all the hardware
 
-Use the following hardware components to make a programmable combination lock:  
-  - HT16K33 Display
-  - Button
-  - Red LED
-  - Green LED
-  - Potentiometer (analog input)
-  - Servo
-
-Requirements:
-  - Hardware:
-    - When locked:   Red LED is on; Green LED is off; Servo is "closed"; Display is unchanged
-    - When unlocked: Red LED is off; Green LED is on; Servo is "open"; Display is "----"
-    - Display shows value of potentiometer (raw value of analog input divided by 8)
-    - Button
-      - Waiting for a button press should allow the display to update (if necessary) and return any values
-      - Time the button was pressed should be recorded and returned
-    - User interaction:
-      - Needs to be able to program the combination for the “lock”
-        - Need to be able to input three values for the combination to program or unlock the “lock”
-      - Combination lock should lock when done programming and wait for combination input
-      - If combination is unsuccessful, the lock should go back to waiting for combination input
-      - If combination was successful, the lock should unlock
-        - When unlocked, pressing button for less than 2s will re-lock the lock; greater than 2s will allow lock to be re-programmed
-
-Uses:
-  - Libraries developed in class
+--------------------------------------------------------------------------
+Background Information: 
+ 
+  * Using 2.2" TFT LCD Display with Adafruit's ILI9341 library
+    * https://www.adafruit.com/product/1480
+    * https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-wiring-and-setup
+    * https://cdn-shop.adafruit.com/datasheets/ILI9340.pdf
+    
+    * Base code (adapted below):
+        * https://github.com/adafruit/Adafruit_ILI9341
+        * https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-usage
+        
+  * Using PMS5003 sensor with Adafruit's PM25AQI library
+        * https://www.adafruit.com/product/3686
+        * https://learn.adafruit.com/pm25-air-quality-sensor/python-and-circuitpython
+        * https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
+    * Base code (adapted below):
+        * https://github.com/adafruit/Adafruit_PM25AQI
+    
+  * Using CCS811 sensor with Adafruit's ccs811 library
+        * https://www.adafruit.com/product/3566
+        * https://learn.adafruit.com/adafruit-ccs811-air-quality-sensor/python-circuitpython
+        * https://cdn-shop.adafruit.com/product-files/3566/3566_datasheet.pdf
+    * Base code (adapted below):
+        * https://github.com/adafruit/Adafruit_CircuitPython_CCS811
+        
+  * Using AHT10 sensor with breakout board and Adafruit's AHTx0 library
+        * https://www.amazon.com/Precision-Temperature-Humidity-Measurement-Communication/dp/B085WCMRSM
+        * https://server4.eca.ir/eshop/AHT10/Aosong_AHT10_en_draft_0c.pdf
+    * Base code (adapted below):
+        * https://github.com/adafruit/Adafruit_CircuitPython_AHTx0
+        * https://circuitpython.readthedocs.io/projects/ahtx0/en/latest/
+    
+--------------------------------------------------------------------------------
+    
 """
 
 # to test software
@@ -70,14 +96,16 @@ import onePlayer
 import twoPlayer
 import guesser
 import setter
-import threading
+import busio
+import board
+
 
 #gets the path for the drivers
 sys.path.append("/var/lib/cloud9/ENGI301/project_01/drivers")
 import nav_button as Button
 import hd44780 as LCD
 import ht16k33 as LED
-
+from adafruit_trellis import Trellis
 # ---------------------------------------------------
 # Constants
 # ---------------------------------------------------
@@ -105,27 +133,52 @@ rows = 2
 
 
 class patternGuesser():
+    """ Pattern Guesser """
     lcd = None
     btn_left = None
     btn_right = None
     btn_select = None
+    led1 = None
+    led2 = None
+    trellis1 = None
+    trellis2 = None
     mode_selected = None
-    led = None
     
-    def __init__(self, lcd, btn_left, btn_right, btn_select, led):
+    def __init__(self,lcd, btn_left, btn_right, btn_select, 
+                       led1,led2,trellis1,trellis2):
         """Initialize variables, lcd, and buttons"""
         #TODO: INITIALIZE LCD DISPLAY
         self.lcd = lcd
         self.btn_left = btn_left
         self.btn_right = btn_right
         self.btn_select = btn_select
-        self.led = led
+        self.led1= led1
+        self.led2 = led2
+        self.trellis1 = trellis1
+        self.trellis2 = trellis2
+        self._setup()
     
     def _setup(self):
-        """sets up the lcd display
-        #TODO: clear lcd display """
+        """sets up the lcd display"""
+        self.lcd.clear()
         
-    
+    def run(self):
+        """ The main logic for the game """
+        # initializes and runs the one player or two player game depending on the user's input\
+        
+        #if true, run the one player game mode
+        if self.getGamemode():
+            game = onePlayer.onePlayer(self.lcd, self.btn_left, self.btn_right, self.btn_select,
+                                        self.led1, self.trellis1)
+        else:
+            game = twoPlayer.twoPlayer(self.lcd, self.btn_left, self.btn_right, self.btn_select,
+                                        self.led1, self.led2, self.trellis1, self.trellis2)
+         
+        game.run()
+        
+        self._cleanup()
+        
+        
     def getGamemode(self):
         """Checks whether the user wants to play single player or TwoPlayer
             Outputs: True if 1 player mode is selected
@@ -152,10 +205,9 @@ class patternGuesser():
             #scrolls left if the left button is pressed and shows the gamemode on the led
             if self.btn_left.is_pressed():
                 self.lcd.setCursor(CURSOR_LEFT_LIMIT,1)
-                print("1 player")
                 
-                self.led.blank()
-                self.led.text(" P1 ")
+                self.led1.blank()
+                self.led1.text(" P1 ")
                 
                 time.sleep(0.5)
             
@@ -164,8 +216,8 @@ class patternGuesser():
                 self.lcd.setCursor(CURSOR_RIGHT_LIMIT, 1)
                 print("2 player")
                 
-                self.led.blank()
-                self.led.text(" P2 ")
+                self.led1.blank()
+                self.led1.text(" P2 ")
                 
                 time.sleep(0.5)
                 
@@ -184,6 +236,17 @@ class patternGuesser():
                     self.lcd.clear()
                     self.lcd.message("2 player")
                     return False
+    
+    def _cleanup(self):
+        """ Cleans up the hardware, turning everything off """
+        self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
+        self.lcd.message("Good Game!")
+        time.sleep(2)
+        self.lcd.clear()
+        self.trellis1.led.fill(False)
+        self.trellis2.led.fill(False)
+        self.led1.blank()
+        self.led2.blank()
 #-------------------------------------------------------------
 # main script
 #------------------------------------------------------------
@@ -192,12 +255,16 @@ if __name__ == "__main__":
     btn_left = Button.Button("P2_18")
     btn_right = Button.Button("P2_20")
     btn_select = Button.Button("P2_22")
-    led = LED.LED(1, 0x70)
-
+    led1 = LED.LED(1, 0x70)
+    led2 = LED.LED(1, 0x71)
     
+    # Create the I2C interface
+    i2c = busio.I2C(board.SCL_2, board.SDA_2)
+    trellis1 = Trellis(i2c)
+    trellis2 = Trellis(i2c, [0x71])
     lcd = LCD.LCD(rs, enable, d4, d5, d6, d7, cols, rows)
-    game = patternGuesser(lcd,btn_left,btn_right,btn_select,led)
-    print(game.getGamemode())
+    pattern_guesser = patternGuesser(lcd,btn_left,btn_right,btn_select,led1,led2, trellis1, trellis2)
+    pattern_guesser.run()
     
     
     
