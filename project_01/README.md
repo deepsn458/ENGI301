@@ -40,5 +40,9 @@ The game will run when the PocketBeagle is powered on. It can also be run from t
 debian@beaglebone:/var/lib/cloud9/ENGI301/project_01/main_game$ ./run
 ```
 ### Testing hardware drivers
-
+Navigate to the drivers directory to access the python files for the hardware drivers.
+The following command will run the button driver test
+```sh
+debian@beaglebone:/var/lib/cloud9/ENGI301/project_01/drivers$ python3 nav_button.py
+```
 
