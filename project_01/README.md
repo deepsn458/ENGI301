@@ -5,7 +5,6 @@ This repository provides the code needed to run the Pattern Memory Game on the P
 
 ## Dependencies
 * Python Package Manager (PIP)
-* Adafruit Circuit Python
 * Adafruit BBIO library
 * Adafruit Trellis Library
 
@@ -26,6 +25,13 @@ Run the following shell commands in your terminal window
  ```sh
  sudo apt-get install zip
  ```
- Install the required ada
+* Install the required Adafruit libraries
+```sh
+sudo pip3 install --upgrade setuptools
+sudo pip3 install --upgrade Adafruit_BBIO
+sudo pip3 install adafruit-blinka
+sudo pip3 install board
+sudo pip3 install adafruit-circuitpython-trellis
+```
  
  
