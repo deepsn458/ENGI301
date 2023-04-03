@@ -53,6 +53,8 @@ config-pin P2_20 gpio
 #Left button
 config-pin P2_18 gpio
 
+#RS pin for LCD
+config-pin P1_02 gpio
 # Enable for LCD
 config-pin P1_04 gpio
 
