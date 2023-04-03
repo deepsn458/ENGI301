@@ -33,5 +33,12 @@ sudo pip3 install adafruit-blinka
 sudo pip3 install board
 sudo pip3 install adafruit-circuitpython-trellis
 ```
- 
- 
+
+## Usage
+The game will run when the PocketBeagle is powered on. It can also be run from the Cloud9 IDE with the following commands
+```sh
+debian@beaglebone:/var/lib/cloud9/ENGI301/project_01/main_game$ ./run
+```
+### Testing hardware drivers
+
+
