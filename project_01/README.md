@@ -10,11 +10,22 @@ This repository provides the code needed to run the Pattern Memory Game on the P
 * Adafruit Trellis Library
 
 ### Follow the instructions below to install these dependencies
+Run the following shell commands in your terminal window
 * Update the Linux Advanced Package Tool (apt) and install the Build-Essential package
 ```sh
   sudo apt-get update
   sudo apt-get install build-essential python-dev python setuptools python-smbus -y
  ```
- 
+ * Installing pip
+ Install the version compatible with your version of python (version 2.x.x vs version 3.x.x)
+ ```sh
+ sudo apt-get install python-pip -y
+ sudo apt-get install python3-pip -y
+ ```
+ * Install zip
+ ```sh
+ sudo apt-get install zip
+ ```
+ Install the required ada
  
  
