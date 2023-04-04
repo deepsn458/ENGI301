@@ -30,7 +30,6 @@ Run the following shell commands in your terminal window
 sudo pip3 install --upgrade setuptools
 sudo pip3 install --upgrade Adafruit_BBIO
 sudo pip3 install adafruit-blinka
-sudo pip3 install board
 sudo pip3 install adafruit-circuitpython-trellis
 ```
 
