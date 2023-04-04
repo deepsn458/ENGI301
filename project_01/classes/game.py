@@ -32,6 +32,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
+The game super class provides the methods that are common between the one player game mode and the two player game mode
+
 APIs:
     - Game()
         - setPatternSize() DONE
@@ -113,6 +115,8 @@ LCD_COL_SPACE = 2
 TIMEOUT_CODE = 9998
 TIMEOUT = 15.0
 
+END_SCORE = 5
+
 #Constants for the LCD
 CURSOR_LEFT_LIMIT = 0
 CURSOR_RIGHT_LIMIT = 15
@@ -160,6 +164,7 @@ class Game():
         self.btn_right = btn_right
         self.btn_select = btn_select
         self.led = led
+        # end def
         
     def setPatternSize(self):
         """Allows player to set the size of each pattern sequence
@@ -172,7 +177,7 @@ class Game():
             print("length of pattern?")
             time.sleep(1)
             cursor = 0
-        
+    
         else:
             #displays message on first row of lcd
             self.lcd.clear()
@@ -201,7 +206,7 @@ class Game():
         
         #gets the pattern size from the player
         return(self._selectPatternLength())
-    
+        # end def
     
     def _selectPatternLength(self):
         """allow user to scroll lcd or select pattern length
@@ -285,7 +290,8 @@ class Game():
         if lcd_debug:
             print(TIMEOUT_CODE)
         return (TIMEOUT_CODE)
-        
+    
+    # end def
     def _checkPress(self, press_location, current_step, pattern_list):
         """Checks if the guesser pressed the right button in the pattern
             Output: True if the correct button was pressed, False otherwise
@@ -314,7 +320,7 @@ class Game():
                     self.guesser.trellis.led[press_location] = False
                     time.sleep(0.2)
             return False
-    
+    # end def
     def _checkWinner(self,p1_score, p2_score):
         """Checks if player 1 or player 2/cpu has reached 10 points
             Output: True if any player has reached 10 points, False otherwise
@@ -322,7 +328,7 @@ class Game():
         #prints out the winner on LCD if there is one
         self.lcd.clear()
         self.lcd.setCursor(CURSOR_LEFT_LIMIT, ROW_1)
-        if p1_score ==2: 
+        if p1_score == 5: 
             if software_debug or lcd_debug:
                 print("player 1 is the winner with a score of {0}".format(p1_score))
                 
@@ -334,7 +340,7 @@ class Game():
                     self.trellis1.led.fill(False)
             return True
         
-        elif p2_score == 2:
+        elif p2_score == 5:
             if software_debug or lcd_debug:
                 print("player 2 is the winner with a score of {0}".format(p2_score))
                 self.lcd.message("Player 2 wins")
@@ -349,7 +355,8 @@ class Game():
             if software_debug or lcd_debug:
                 print("No winner")
             return False
-            
+     
+     # end def       
     
     def _guessPattern(self, pattern_size, pattern_list):
         """Checks if the guesser guessed the pattern correctly
@@ -423,7 +430,8 @@ class Game():
                         self.lcd.message("Sorry, time is up")
                     return False
         return True
-            
+     
+     # end def       
     
     def _showPattern(self, pattern_size, pattern_list):
         """Shows each step in the pattern to the guesser for two seconds
@@ -448,6 +456,7 @@ class Game():
                 
         return
     
+    # end def
     def cleanup(self):
         """ clears LCD display and turns off the LEDs"""
         
@@ -457,11 +466,8 @@ class Game():
             self.setter.led.blank()
         
         return
-
-    
-# -----------------------------------------------------------------------
-# Start of the twoPlayer subclass
-# -----------------------------------------------------------------------
+    # end def
+# end class
 
     
 # ------------------------------------------------------------------------

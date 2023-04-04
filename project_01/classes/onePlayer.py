@@ -30,6 +30,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
+ This module provides the methods that will be called when running the one player game
+ 
  APIs:
  - OnePlayer(Game)
             - pins for led, buttons, trellis, lcd are passed as input
@@ -105,7 +107,8 @@ class onePlayer(game.Game):
         self.led = led
             
         self._setup()
-            
+    # end def
+    
     def _setup(self):
         """clears the LCD and Trellis. Prints 0 on LED"""
         if software_debug:
@@ -116,7 +119,8 @@ class onePlayer(game.Game):
             self.lcd.clear()
             self.trellis.clear()
             self.led.update(0)
-        
+     
+     # end def   
     def run(self):
         """ Runs the onePlayer game mode"""
       
@@ -128,7 +132,7 @@ class onePlayer(game.Game):
         self.cleanup()
         return
             
-        
+     # end def  
     def playOnePlayer(self, pattern_size):
         """The main logic for the one player game mode
             Output: nothing
@@ -183,7 +187,8 @@ class onePlayer(game.Game):
          
         print("onePlayer game doen")   
         return
-        
+    
+    # end def    
     def _generatePattern(self,pattern_size):
         """Generates the pattern for the CPU
            Output: nothing
@@ -195,6 +200,8 @@ class onePlayer(game.Game):
         if software_debug:
             print(self.pattern_list)
         return
+    # end def
+# end class
 # ------------------------------------------------------------------------
 # Main script
 # ------------------------------------------------------------------------

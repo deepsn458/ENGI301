@@ -42,6 +42,7 @@ button and the processor pin (i.e. the input is "High"/"1" when the button is
 not pressed) and will be connected to ground when the button is pressed (i.e. 
 the input is "Low" / "0" when the button is pressed)
 
+The test does not finish on its own. The user must hit 'ctrl+c'
 Software API:
 
   Button(pin)
@@ -51,14 +52,6 @@ Software API:
       - Return a boolean value (i.e. True/False) on if button is pressed
       - Function consumes no time
     
-    wait_for_press(function=None)
-      - Wait for the button to be pressed 
-      - Optionally takes in an argument "function" which is the function 
-        to be executed when waiting for the button to be pressed
-      - Function consumes time
-      - Returns a tuple:  
-        (<time button was pressed>, <data returned by the "function" argument>)
-
 """
 import time
 
@@ -132,67 +125,6 @@ class Button():
 
     # End def
 
-
-    def wait_for_press(self, function=None):
-        """ Wait for the button to be pressed.  This function will 
-           wait for the button to be pressed and released so there
-           are no race conditions.
-        
-           Arguments:
-               function - Optional argument that is the functon to 
-                          executed while waiting for the button to 
-                          be pressed
-        
-           Returns:
-               tuple - [0] Time button was pressed
-                     - [1] Data returned by the "function" argument
-        """
-        function_return_value = None
-        button_press_time     = None
-        
-        # Execute function if it is not None
-        #   - This covers the case that the button is pressed prior 
-        #     to entering this function
-        if function is not None:
-            function_return_value = function()
-        
-        # Wait for button press
-        #   If the function is not None, execute the function
-        #   Sleep for a short amount of time to reduce the CPU load
-        #
-        # HW#4 TODO: (one line of code)
-        #   Update while loop condition to compare the input value of the  
-        #   GPIO pin of the buton (i.e. self.pin) to the "unpressed value" 
-        #   of the class (i.e. we are executing the while loop while the 
-        #   button is not being pressed)
-        while(GPIO.input(self.pin) == self.unpressed_value):
-            if function is not None:
-                function_return_value = function()
-                
-            time.sleep(self.sleep_time)
-        
-        # Record time
-        button_press_time = time.time()
-        
-        # Wait for button release
-        #   Sleep for a short amount of time to reduce the CPU load
-        #
-        # HW#4 TODO: (one line of code)
-        #   Update while loop condition to compare the input value of the  
-        #   GPIO pin of the buton (i.e. self.pin) to the "pressed value" 
-        #   of the class (i.e. we are executing the while loop while the 
-        #   button is being pressed)
-        while(GPIO.input(self.pin) == self.pressed_value):
-            time.sleep(self.sleep_time)
-        
-        # Compute the button_press_time
-        button_press_time = time.time() - button_press_time
-
-        # Return a tuple:  (button press time, function return value)        
-        return (button_press_time, function_return_value)
-        
-    # End def
-
 # End class
 
 
@@ -206,13 +138,21 @@ if __name__ == '__main__':
     print("Button Test")
 
     # Create instantiation of the button
-    button = Button("P2_18")
-    button1 = Button("P2_22")
+    button_left = Button("P2_18")
+    button_right = Button("P2_20")
+    button_select = Button("P2_22")
     
+    #Checks which button is pressed in a continuous loop
     while (True):
-        if button.is_pressed():
-            print("ye")
+        if button_left.is_pressed():
+            print("left")
             time.sleep(1)
-        elif button1.is_pressed():
-            print("no")
+            
+        elif button_right.is_pressed():
+            print("right")
             time.sleep(1)
+            
+        elif button_select.is_pressed():
+            print("select")
+        print("Press 'CTRL+C' to end the test")
+        time.sleep(2)

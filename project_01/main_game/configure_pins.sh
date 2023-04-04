@@ -59,7 +59,7 @@ config-pin P1_02 gpio
 config-pin P1_04 gpio
 
 #data lines 4 to 7 for LCD
-config-pin P2_02
-config-pin P2_04
-config-pin P2_06
-config-pin P2_08
+config-pin P2_02 gpio
+config-pin P2_04 gpio
+config-pin P2_06 gpio
+config-pin P2_08 gpio

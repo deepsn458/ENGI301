@@ -31,6 +31,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
+ This module provides the methods that will be called when running the two player game
+
 APIs:
     -TwoPlayer(Game)
             - - pins for led, buttons, trellis, lcd are passed as input
@@ -116,6 +118,7 @@ class twoPlayer(game.Game):
         self.led2 = led2
         
         self._setup()
+    # end def
     
     def _setup(self):
         """clears the LCD and Trellises. Prints 0 on LEDs"""
@@ -130,7 +133,7 @@ class twoPlayer(game.Game):
             self.led1.update(0)
             self.led2.update(0)
         return
-    
+    # end def
     def run(self):
         """ Runs the twoPlayer game mode"""
         self.lcd.clear()
@@ -139,6 +142,7 @@ class twoPlayer(game.Game):
         time.sleep(2)
         #calls the cleanup methpod
         self.cleanup()
+    #end def
     
     def playTwoPlayer(self, pattern_size):
         """ The main logic for the two player game mode
@@ -154,7 +158,7 @@ class twoPlayer(game.Game):
         #makes sure the players' scores are not swapped when the guesser and setter are swapped
         p1_score = 0
         p2_score = 0
-        
+  
             
         #play the game until there is a winner
         while (not self._checkWinner(p1_score, p2_score)):
@@ -215,7 +219,7 @@ class twoPlayer(game.Game):
             print("setter score is {0}, guesser score is {1}".format(self.setter.score, self.guesser.score))   
             print("p1_score is {0} p2_score is {1}".format(p1_score, p2_score))
         return
-        
+    # end def    
     def _swap(self):
         """ Swaps the setter and guesser for the next round
             Output: nothing
@@ -233,7 +237,7 @@ class twoPlayer(game.Game):
         self.guesser.score = temp_score
             
         print("guesser: {0}, setter: {1}".format(self.guesser.trellis,self.setter.trellis))
-    
+    # end def
     
     def _chooseGuesser(self):
         """ Randomely chooses which player will set the pattern and which player will guess the pattern
@@ -255,7 +259,8 @@ class twoPlayer(game.Game):
         self.guesser.led.text("GUES")
         self.setter.led.text("SET")
     
-        
+    # end def
+#end class
 
 # ------------------------------------------------------------------------
 # Main script

@@ -30,6 +30,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
+The setter module provides the methods that will manipulate the hardware for the setter
+This module is only used in the two player game mode
 
 APIs:
   - Setter(led, trellis)
@@ -95,23 +97,32 @@ class Setter():
     trellis = None
     led = None
     score = 0
-    
     def __init__(self, trellis, led):
         self.trellis = trellis
         self.led = led
+    #end def
     
     def getLED(self):
+        """Returns the setter's led object"""
         return self.led
+    # end def
     
     def getTrellis(self):
+        """Returns the setter's trellis object"""
         return self.trellis
+    # end def
     
     def updateScore(self):
+        """ Updates the setter's score"""
         self.score += 1
         self.led.update(self.score)
+    # end def
     
     def getScore(self):
+        """Returns the setter's score"""
         return self.score
+        
+    # end def
     
     def setPattern(self, pattern_size, lcd):
         """Allows the setter to set a pattern for the guesser to guess
@@ -172,7 +183,8 @@ class Setter():
         lcd.clear()
         print(pattern_list)
         return pattern_list
-
+    # end def
+# end class
 # ------------------------------------------------------------------------
 # Main script
 # ------------------------------------------------------------------------

@@ -51,44 +51,19 @@ Software API:
 --------------------------------------------------------------------------
 Background Information: 
  
-  * Using 2.2" TFT LCD Display with Adafruit's ILI9341 library
-    * https://www.adafruit.com/product/1480
-    * https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-wiring-and-setup
-    * https://cdn-shop.adafruit.com/datasheets/ILI9340.pdf
-    
-    * Base code (adapted below):
-        * https://github.com/adafruit/Adafruit_ILI9341
-        * https://learn.adafruit.com/adafruit-2-8-and-3-2-color-tft-touchscreen-breakout-v2/python-usage
+  * Uses HD44780U 16x02 LCD Display
         
-  * Using PMS5003 sensor with Adafruit's PM25AQI library
-        * https://www.adafruit.com/product/3686
-        * https://learn.adafruit.com/pm25-air-quality-sensor/python-and-circuitpython
-        * https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
-    * Base code (adapted below):
-        * https://github.com/adafruit/Adafruit_PM25AQI
+  * Uses 7-segment LED with HT16K33 I2C Backpack
+     
     
-  * Using CCS811 sensor with Adafruit's ccs811 library
-        * https://www.adafruit.com/product/3566
-        * https://learn.adafruit.com/adafruit-ccs811-air-quality-sensor/python-circuitpython
-        * https://cdn-shop.adafruit.com/product-files/3566/3566_datasheet.pdf
-    * Base code (adapted below):
-        * https://github.com/adafruit/Adafruit_CircuitPython_CCS811
-        
-  * Using AHT10 sensor with breakout board and Adafruit's AHTx0 library
-        * https://www.amazon.com/Precision-Temperature-Humidity-Measurement-Communication/dp/B085WCMRSM
-        * https://server4.eca.ir/eshop/AHT10/Aosong_AHT10_en_draft_0c.pdf
-    * Base code (adapted below):
-        * https://github.com/adafruit/Adafruit_CircuitPython_AHTx0
-        * https://circuitpython.readthedocs.io/projects/ahtx0/en/latest/
+  * Uses Adafruit Trellis with Adafruit's Circuit Python Trellis Library
+        * https://github.com/adafruit/Adafruit_CircuitPython_Trellis
+    
     
 --------------------------------------------------------------------------------
     
 """
 
-# to test software
-software_debug = False
-#to test the hardware
-button_debug = True
 import sys
 import time
 
@@ -156,10 +131,14 @@ class patternGuesser():
         self.trellis1 = trellis1
         self.trellis2 = trellis2
         self._setup()
+        
+        #end def
     
     def _setup(self):
         """sets up the lcd display"""
         self.lcd.clear()
+        
+        #end def
         
     def run(self):
         """ The main logic for the game """
@@ -176,6 +155,8 @@ class patternGuesser():
         game.run()
         
         self._cleanup()
+        
+        #end def
         
         
     def getGamemode(self):
@@ -235,6 +216,7 @@ class patternGuesser():
                     self.lcd.clear()
                     self.lcd.message("2 player")
                     return False
+    #end def
     
     def _cleanup(self):
         """ Cleans up the hardware, turning everything off """
@@ -246,6 +228,10 @@ class patternGuesser():
         self.trellis2.led.fill(False)
         self.led1.blank()
         self.led2.blank()
+    #end def
+
+#end class
+
 #-------------------------------------------------------------
 # main script
 #------------------------------------------------------------

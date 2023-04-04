@@ -30,6 +30,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
+The guesser module provides the methods that will manipulate the hardware for the guesser
 
 APIs:
   - Guesser(led, trellis)
@@ -57,16 +58,27 @@ class Guesser():
     def __init__(self, trellis, led):
         self.trellis = trellis
         self.led = led
+    #end def
     
     def getLED(self):
+        """Returns the guesser's led object"""
         return self.led
     
+    #end def
+    
     def getTrellis(self):
+        """Returns the guesser's trellis object"""
         return self.trellis
+    #end def
     
     def updateScore(self):
+        """ Updates the guesser's score"""
         self.score += 1
         self.led.update(self.score)
+    #end def
     
     def getScore(self):
+        """Returns the guesser's score"""
         return self.score
+    #end def
+#end class
